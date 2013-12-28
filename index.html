@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Choix des cadeaux du Petit Noël</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+<link href="css/bootstrap.min.css" rel="stylesheet">
+<link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+	<div class="container" style="width: 100%;">
+		<div class="row">
+			<div class="col-md-2">
+				<h3>Participants</h3>
+				<ul id="participants">
+					<li>Vincent<span class="remove-participant glyphicon glyphicon-remove"></span></li>
+					<li>Didier 1<span class="remove-participant glyphicon glyphicon-remove"></span></li>
+					<li>Didier 2<span class="remove-participant glyphicon glyphicon-remove"></span></li>
+				</ul>
+				<div class="input-group" id="addGroup">
+					<input type="text" id="newParticipant" class="form-control input-sm" />
+					<span class="input-group-btn">
+						<button id="addParticipant" class="btn btn-primary btn-sm" type="button">Ajouter</button>
+					</span>
+				</div>
+			</div>
+			<div class="col-md-8">
+				<h1 id="done" style="text-align: center;" class="hidden">Fini !</h1>
+				<div style="text-align: center; padding-top: 20px;">
+					<button id="start" class="btn btn-lg btn-success" type="button">Commencer !</button>
+				</div>
+				<div id="wheel">
+					<canvas id="canvas" width="1000" height="800"></canvas>
+				</div>
+			</div>
+			<div class="col-md-2">
+				<h3>Déroulement</h3>
+				<ul id="history">
+				</ul>
+				<div style="text-align: center; padding-top: 20px;" class="hidden">
+					<button id="spin" class="btn btn-lg btn-success" type="button">Suivant !</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="info" tabindex="-1" role="dialog" aria-labelledby="infoLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+	        <h4 class="modal-title" id="infoLabel">Résultat du tirage</h4>
+	      </div>
+	      <div id="infoTxt" class="modal-body">
+	      </div>
+	      <div class="modal-footer">
+	        <button type="button" class="btn btn-default" data-dismiss="modal">Ok</button>
+	      </div>
+	    </div><!-- /.modal-content -->
+	  </div><!-- /.modal-dialog -->
+	</div><!-- /.modal -->
+
+	<script src="https://code.jquery.com/jquery.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="js/wheel.js"></script>
+	<script type="text/javascript">
+	
+	function addParticipant() {
+		var name = $('#newParticipant').val()
+		$('#participants').append('<li>' + name + ' <span class="remove-participant glyphicon glyphicon-remove"></span></li>');
+		sortParticipants();
+		$('#newParticipant').val('');
+	}
+	
+	function sortParticipants() {
+		var items = $('#participants li').get();
+		items.sort(function(a,b){
+		  var keyA = $(a).text();
+		  var keyB = $(b).text();
+
+		  if (keyA < keyB) return -1;
+		  if (keyA > keyB) return 1;
+		  return 0;
+		});
+		var ul = $('#participants');
+		$.each(items, function(i, li){
+		  ul.append(li);
+		});
+	}
+	
+	function start() {
+		$('#addGroup').remove();
+		$('#participants span').remove();
+		$('#start').parent().remove();
+		$('#spin').parent().removeClass('hidden');
+		
+		wheel.init();
+		
+		var segments = new Array();
+		$.each($('#participants li'), function(key, li) {
+			segments.push($(li).text().trim());
+		});
+
+		wheel.segments = segments;
+		wheel.update();
+	}
+	
+	function spin() {
+		var segments = wheel.segments;
+		
+		if (currentParticipant != '') {
+			var i = segments.indexOf(currentParticipant);
+			segments.splice(i, 1);
+			wheel.update();
+		}
+		
+		if (segments.length > 1) {
+			$('#spin').addClass('disabled');
+			wheel.spin(spinFinished);
+		} else if (segments.length == 1) {
+			wheel.currentElement = segments[0];
+			spinFinished();
+		} else {
+			$('#spin').remove();
+			$('#wheel').remove();
+			$('#done').removeClass('hidden');
+			wheel.currentElement = starter;
+			spinFinished();
+		}
+	}
+	
+	var starter = '';
+	var currentParticipant = '';
+	function spinFinished() {
+		var selected = wheel.currentElement;
+		var isFirst = $('#history li').length == 0;
+		var message = '';
+		
+		if (isFirst) {
+			message = selected + ' commence !';
+			starter = selected;
+		} else {
+			message = currentParticipant + ' donne à ' + selected + '.';
+		}
+
+		$('#history').append('<li>' + message + '</li>');
+		$('#participants li:contains("' + selected + '")').css("text-decoration", "line-through");
+		
+		$('#infoTxt').text(message);
+		$('#info').modal();
+		
+		currentParticipant = selected;
+		$('#spin').removeClass('disabled');
+	}
+	
+	$(function() {
+		$('#addParticipant').click(addParticipant);
+		$('#newParticipant').keypress(function(e) {
+			if (e.keyCode == 13) {
+				addParticipant();
+			}
+		});
+		$(document).on("click", ".remove-participant", function(e) {
+			$(e.currentTarget).parent().remove();
+		});
+		$(document).keydown(function(e) {
+			if (e.keyCode == 32) {
+				alert('ok');
+			}
+		});
+		$('#start').click(start);
+		$('#spin').click(spin);
+	});
+	
+	</script>
+</body>
+</html>

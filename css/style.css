@@ -1,0 +1,15 @@
+.remove-participant {
+	float: right;
+	padding-top: 2px;
+	cursor: pointer;
+}
+
+#infoTxt {
+	font-weight: bold;
+	font-size: 2em;
+}
+
+#wheel {
+	text-align: center;
+	margin-top: 20px;
+}
