@@ -13,3 +13,12 @@
 	text-align: center;
 	margin-top: 20px;
 }
+
+#spin {
+	margin-bottom: 20px;
+}
+
+.progress-bar {
+	-webkit-transition: none;
+	transition: none;
+}​

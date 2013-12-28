@@ -39,6 +39,10 @@
 				</ul>
 				<div style="text-align: center; padding-top: 20px;" class="hidden">
 					<button id="spin" class="btn btn-lg btn-success" type="button">Suivant !</button>
+					<div class="progress">
+					  <div class="progress-bar" id="intensity" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: 0%;">
+					  </div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -59,7 +63,7 @@
 	  </div><!-- /.modal-dialog -->
 	</div><!-- /.modal -->
 
-	<script src="https://code.jquery.com/jquery.js"></script>
+	<script src="//code.jquery.com/jquery.js"></script>
 	<script src="js/bootstrap.min.js"></script>
 	<script src="js/wheel.js"></script>
 	<script type="text/javascript">
@@ -113,6 +117,9 @@
 			wheel.update();
 		}
 		
+		// set spin duration according to intensity
+		wheel.downTime = 2000 + (intensity / 100.0) * 5000;
+		
 		if (segments.length > 1) {
 			$('#spin').addClass('disabled');
 			wheel.spin(spinFinished);
@@ -150,6 +157,30 @@
 		
 		currentParticipant = selected;
 		$('#spin').removeClass('disabled');
+		$('#intensity').css('width', 0);
+		intensity = 0;
+		if (wheel.segments.length == 2) {
+			$('#intensity').parent().addClass('hidden');
+		}
+	}
+	
+	var intensity = 0;
+	var updateInterval = 10;
+	var intensityHandle = -1;
+	
+	function startIntensity() {
+		intensityHandle = setInterval(function () {
+			if (intensity == 100) {
+				clearInterval(intensityHandle);	
+			}
+			intensity += 1;
+			$('#intensity').css('width', intensity + '%');
+		}, updateInterval);
+	}
+	
+	function endIntensity() {
+		clearInterval(intensityHandle);
+		spin();
 	}
 	
 	$(function() {
@@ -168,7 +199,9 @@
 			}
 		});
 		$('#start').click(start);
-		$('#spin').click(spin);
+		
+		$('#spin').mousedown(startIntensity);
+		$('#spin').mouseup(endIntensity);
 	});
 	
 	</script>
